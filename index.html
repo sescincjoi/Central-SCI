@@ -2434,7 +2434,39 @@
     </div>
     
     <script>
-    const AVISOS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwf7qewam6spvzEV80eVSR-yXGN9QwnuI2qDOczefVWBRlVYh77t1Rk4meq8P9_KYTyIQ/exec';
+    // AVISOS (dinâmico)
+    function getAvisosURL() {
+        if (window.endpointsManager && window.endpointsManager.initialized) {
+            return window.endpointsManager.getEndpoint('avisos');
+        }
+        // Fallback para Joinville se ainda não carregou
+        return 'https://script.google.com/macros/s/AKfycbwf7qewam6spvzEV80eVSR-yXGN9QwnuI2qDOczefVWBRlVYh77t1Rk4meq8P9_KYTyIQ/exec';
+    }
+    
+    // Usar a função nos fetches:
+    async function carregarAvisos() {
+        try {
+            const url = getAvisosURL();
+            const response = await fetch(`${url}?action=getAvisos`);
+            // ... resto do código
+        } catch (error) {
+            console.error('Erro ao carregar avisos:', error);
+        }
+    }
+    
+    async function enviarAviso(event) {
+        // ...
+        try {
+            const url = getAvisosURL();
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            // ... resto do código
+        } catch (error) {
+            console.error('Erro ao enviar aviso:', error);
+        }
+    }
     
     let avisosAtivos = [];
     
