@@ -561,6 +561,29 @@ class AuthCore {
   }
 
   /**
+   * VERIFICAR SE É SUPER ADMIN
+   */
+  isSuperAdmin() {
+    if (!this.currentUser) return false;
+    return this.currentUser.role === 'super-admin';
+  }
+  
+  /**
+   * OBTER BASE DO USUÁRIO
+   */
+  getBaseUsuario() {
+    return this.currentUser?.base || null;
+  }
+  
+  /**
+   * VERIFICAR SE É ADMIN DE UMA BASE ESPECÍFICA
+   */
+  isAdminDaBase(baseId) {
+    if (!this.currentUser) return false;
+    return this.currentUser.role === 'admin' && this.currentUser.base === baseId;
+  }
+
+  /**
    * VERIFICAR SE USUÁRIO ESTÁ LOGADO
    */
   isAuthenticated() {
