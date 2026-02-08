@@ -993,42 +993,74 @@
     </style>
 
     <!-- Firebase Auth - Módulos ES6 -->
-    <script type="module">
-        // Importar módulos de autenticação
+        <script type="module">
+        // ✅ 1. IMPORTAR CONFIGURAÇÕES DE BASES (PRIMEIRO)
+        import basesConfig from '/Central-SCI/js/config/bases-config.js';
+        import endpointsManager from '/Central-SCI/js/config/endpoints-manager.js';
+        
+        // 2. Importar módulos de autenticação
         import authCore from '/Central-SCI/js/auth/auth-core.js';
         import authUI from '/Central-SCI/js/auth/auth-ui.js';
         import authLock from '/Central-SCI/js/auth/auth-lock.js';
         import authGuard from '/Central-SCI/js/auth/auth-guard.js';
         import matriculaHandler from '/Central-SCI/js/auth/matricula-handler.js';
         
-        // Disponibilizar globalmente
+        // ✅ 3. DISPONIBILIZAR GLOBALMENTE
+        window.basesConfig = basesConfig;
+        window.endpointsManager = endpointsManager;
         window.authCore = authCore;
         window.authUI = authUI;
         window.authGuard = authGuard;
         window.matriculaHandler = matriculaHandler;
         window.authLock = authLock;
         
-        console.log('✅ Módulos de autenticação carregados');
+        console.log('✅ Módulos carregados');
         
-        // ✅ ESPERAR authUI estar TOTALMENTE pronto antes de inicializar authLock
-        function initAuthSystem() {
-            // Verificar se authUI está realmente disponível
-            if (window.authUI && window.authUI.openModal) {
-                console.log('✅ authUI pronto, inicializando authLock...');
-                authLock.init();
-            } else {
-                console.log('⏳ Aguardando authUI...');
-                setTimeout(initAuthSystem, 50); // Tentar novamente em 50ms
+        // ✅ 4. INICIALIZAR NA ORDEM CORRETA
+        async function initSystem() {
+            try {
+                // Primeiro: carregar bases do Firestore
+                console.log('📡 Carregando bases...');
+                await basesConfig.init();
+                
+                // Segundo: inicializar endpoints manager
+                console.log('🎯 Inicializando endpoints...');
+                await endpointsManager.init();
+                
+                // Terceiro: aguardar authUI estar pronto
+                console.log('🔐 Aguardando sistema de autenticação...');
+                await waitForAuthUI();
+                
+                console.log('✅ Sistema inicializado com sucesso!');
+                
+            } catch (error) {
+                console.error('❌ Erro ao inicializar sistema:', error);
             }
         }
         
-        // Aguardar DOM carregar
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initAuthSystem);
-        } else {
-            initAuthSystem();
+        // ✅ 5. FUNÇÃO PARA AGUARDAR authUI
+        function waitForAuthUI() {
+            return new Promise((resolve) => {
+                function check() {
+                    if (window.authUI && window.authUI.openModal) {
+                        console.log('✅ authUI pronto, inicializando authLock...');
+                        authLock.init();
+                        resolve();
+                    } else {
+                        console.log('⏳ Aguardando authUI...');
+                        setTimeout(check, 50);
+                    }
+                }
+                check();
+            });
         }
         
+        // ✅ 6. INICIAR QUANDO DOM CARREGAR
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSystem);
+        } else {
+            initSystem();
+        }
     </script>
     <!-- PWA Service Worker -->
     <script src="/Central-SCI/pwa/app.js"></script>
