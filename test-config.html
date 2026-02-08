@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste - Configuração de Bases</title>
+</head>
+<body>
+    <h1>Teste de Configuração</h1>
+    <div id="resultado"></div>
+
+    <script type="module">
+        import basesConfig from './js/config/bases-config.js';
+        import endpointsManager from './js/config/endpoints-manager.js';
+
+        async function testar() {
+            const resultado = document.getElementById('resultado');
+            
+            try {
+                // Inicializar
+                await basesConfig.init();
+                await endpointsManager.init();
+                
+                // Testar
+                const bases = basesConfig.listarBases();
+                const baseAtual = endpointsManager.getBaseAtual();
+                const endpointAvisos = endpointsManager.getEndpoint('avisos');
+                const logo = endpointsManager.getLogoUrl();
+                
+                resultado.innerHTML = `
+                    <h2>✅ Configuração funcionando!</h2>
+                    <p><strong>Bases disponíveis:</strong> ${bases.map(b => b.nome).join(', ')}</p>
+                    <p><strong>Base atual:</strong> ${baseAtual}</p>
+                    <p><strong>Endpoint de avisos:</strong> ${endpointAvisos || 'Não configurado'}</p>
+                    <p><strong>Logo:</strong> <img src="${logo}" width="50"></p>
+                `;
+                
+            } catch (error) {
+                resultado.innerHTML = `<h2>❌ Erro:</h2><pre>${error}</pre>`;
+            }
+        }
+        
+        testar();
+    </script>
+</body>
+</html>
