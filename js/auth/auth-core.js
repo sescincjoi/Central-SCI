@@ -120,6 +120,7 @@ class AuthCore {
           displayName: userData.displayName,
           matricula: userData.matricula,
           role: userData.role,
+          base: userData.base || "JOI",
           ativo: userData.ativo,
           cadastradoEm: userData.cadastradoEm,
           ultimoAcesso: userData.ultimoAcesso
@@ -157,6 +158,7 @@ class AuthCore {
             displayName: userData.displayName,
             matricula: userData.matricula,
             role: userData.role,
+            base: userData.base || "JOI",
             ativo: userData.ativo,
             cadastradoEm: userData.cadastradoEm,
             ultimoAcesso: userData.ultimoAcesso
@@ -363,6 +365,7 @@ class AuthCore {
         nomeCompleto: nomeCompleto.trim(),
         displayName: nomeBA.trim(),
         role: matriculaCheck.role,
+        base: "JOI",
         ativo: true,
         cadastradoEm: serverTimestamp(),
         ultimoAcesso: serverTimestamp()
