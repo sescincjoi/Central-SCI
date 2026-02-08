@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Firestore - Central SCI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #86868b;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .warning-icon {
+            font-size: 24px;
+        }
+        
+        .warning-text {
+            font-size: 14px;
+            color: #856404;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #log {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            display: none;
+        }
+        
+        #log.show {
+            display: block;
+        }
+        
+        .log-line {
+            margin-bottom: 8px;
+        }
+        
+        .log-success {
+            color: #34c759;
+        }
+        
+        .log-error {
+            color: #ff3b30;
+        }
+        
+        .log-info {
+            color: #007aff;
+        }
+        
+        .log-warning {
+            color: #ff9500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Setup do Firestore</h1>
+        <p class="subtitle">Configuração inicial do sistema multi-base</p>
+        
+        <div class="warning">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-text">
+                <strong>ATENÇÃO:</strong> Este script criará as coleções e documentos iniciais no Firestore.
+                <br>Execute apenas <strong>UMA VEZ</strong>.
+                <br>Se já existirem dados, eles serão <strong>sobrescritos</strong>.
+            </div>
+        </div>
+        
+        <button id="btnSetup" class="btn">Executar Setup</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import { db } from './js/auth/firebase-config.js';
+        import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const btn = document.getElementById('btnSetup');
+        const logDiv = document.getElementById('log');
+
+        function log(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            
+            const icon = {
+                'success': '✅',
+                'error': '❌',
+                'info': '📍',
+                'warning': '⚠️'
+            }[type] || '•';
+            
+            line.textContent = `${icon} ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function executarSetup() {
+            btn.disabled = true;
+            btn.textContent = 'Executando...';
+            logDiv.classList.add('show');
+            logDiv.innerHTML = '';
+            
+            try {
+                log('Iniciando setup do Firestore...', 'info');
+                
+                // ========== CRIAR BASES ==========
+                log('Criando configuração de bases...', 'info');
+                
+                const basesData = {
+                    JOI: {
+                        id: "JOI",
+                        nome: "Joinville",
+                        nomeCompleto: "Aeroporto de Joinville - Lauro Carneiro de Loyola",
+                        icao: "SBJV",
+                        ativo: true,
+                        logoUrl: "https://lh3.googleusercontent.com/u/0/d/1qRTQ2m7853VqWVPnms99f0cPBlQHahXq",
+                        endpoints: {
+                            avisos: "https://script.google.com/macros/s/AKfycbzMqAjJn-Y8VRcGKRtZWuvTCFXa3ASGlWfktIhclRR-qLAPNVLP-bARkHCp6g5_G4HdHg/exec",
+                            relatorios: "https://script.google.com/macros/s/AKfycbyal0depSGSESznpVqxnv6FnwOsv2CZXWTdEtU59GB1eC359G3chsgNBnE8ywiXEJXgKw/exec",
+                            escalas: null,
+                            treinamentos: null,
+                            materiais: null,
+                            ocorrencias: null
+                        },
+                        config: {
+                            equipes: ["ALFA", "BRAVO", "CHARLIE", "DELTA"],
+                            turno: 12,
+                            timezone: "America/Sao_Paulo",
+                            dataReferenciaEquipe: "2026-01-15T17:00:00",
+                            equipeReferencia: "DELTA"
+                        },
+                        criadoEm: serverTimestamp()
+                    },
+                    TESTE: {
+                        id: "TESTE",
+                        nome: "Base Teste",
+                        nomeCompleto: "Base de Testes - Desenvolvimento",
+                        icao: "TEST",
+                        ativo: true,
+                        logoUrl: "https://via.placeholder.com/150x150/007AFF/FFFFFF?text=TESTE",
+                        endpoints: {
+                            avisos: null,
+                            relatorios: null,
+                            escalas: null,
+                            treinamentos: null,
+                            materiais: null,
+                            ocorrencias: null
+                        },
+                        config: {
+                            equipes: ["ALFA", "BRAVO"],
+                            turno: 12,
+                            timezone: "America/Sao_Paulo",
+                            dataReferenciaEquipe: "2026-01-15T17:00:00",
+                            equipeReferencia: "ALFA"
+                        },
+                        criadoEm: serverTimestamp()
+                    }
+                };
+                
+                const basesRef = doc(db, 'system-config', 'bases');
+                await setDoc(basesRef, basesData);
+                
+                log('Base JOI criada com sucesso!', 'success');
+                log('Base TESTE criada com sucesso!', 'success');
+                
+                // ========== CRIAR CONFIGURAÇÕES GERAIS ==========
+                log('Criando configurações gerais...', 'info');
+                
+                const configGeral = {
+                    baseDefault: "JOI",
+                    versao: "2.0.0",
+                    multiBaseAtivo: true,
+                    atualizadoEm: serverTimestamp()
+                };
+                
+                const configRef = doc(db, 'system-config', 'geral');
+                await setDoc(configRef, configGeral);
+                
+                log('Configurações gerais criadas!', 'success');
+                
+                // ========== FINALIZADO ==========
+                log('', 'info');
+                log('🎉 Setup concluído com sucesso!', 'success');
+                log('', 'info');
+                log('Próximos passos:', 'warning');
+                log('1. Verifique o Firestore Console', 'info');
+                log('2. Acesse: /test-config.html para testar', 'info');
+                log('3. Delete este arquivo (setup-firestore.html)', 'info');
+                
+                btn.textContent = '✓ Concluído!';
+                
+            } catch (error) {
+                log('', 'info');
+                log('Erro durante o setup:', 'error');
+                log(error.message, 'error');
+                
+                btn.disabled = false;
+                btn.textContent = 'Tentar Novamente';
+            }
+        }
+
+        btn.addEventListener('click', executarSetup);
+    </script>
+</body>
+</html>
