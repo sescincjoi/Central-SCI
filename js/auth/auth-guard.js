@@ -166,6 +166,10 @@ class AuthGuard {
             <i data-lucide="shield" class="w-4 h-4"></i>
             <span>Painel Admin</span>
           </a>
+          <a href="/Central-SCI/admin/config-bases.html" class="auth-menu-item" id="auth-menu-bases" style="display: none;">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span>Configurar Bases</span>
+          </a>
           <div class="auth-menu-item logout" id="auth-logout-btn">
             <i data-lucide="log-out" class="w-4 h-4"></i>
             <span>Sair</span>
@@ -237,14 +241,17 @@ class AuthGuard {
         roleElement.textContent = 'super administrador';
         roleElement.className = 'auth-user-role admin';
         document.getElementById('auth-menu-admin').style.display = 'flex';
+        document.getElementById('auth-menu-bases').style.display = 'flex';  // ← ADICIONAR
       } else if (user.role === 'admin') {
         roleElement.textContent = 'administrador';
         roleElement.className = 'auth-user-role admin';
-        document.getElementById('auth-menu-admin').style.display = 'none';  // ← Admin não vê
+        document.getElementById('auth-menu-admin').style.display = 'flex';
+        document.getElementById('auth-menu-bases').style.display = 'none';  // ← ADICIONAR
       } else {
         roleElement.textContent = 'usuário';
         roleElement.className = 'auth-user-role user';
         document.getElementById('auth-menu-admin').style.display = 'none';
+        document.getElementById('auth-menu-bases').style.display = 'none';  // ← ADICIONAR
       }
       
     } else {
