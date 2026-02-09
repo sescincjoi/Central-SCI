@@ -64,11 +64,11 @@ export default {
      */
     getLockMessage(element) {
         const isAuthenticated = window.authCore && window.authCore.currentUser !== null;
-        const isAdmin = window.authCore && window.authCore.isAdmin && window.authCore.isAdmin() || false;
+        const isSuperAdmin = window.authCore && window.authCore.isSuperAdmin && window.authCore.isSuperAdmin() || false;
         const requiredRole = element.getAttribute('data-role');
         
         // Usuário comum tentando acessar área admin
-        if (isAuthenticated && !isAdmin && requiredRole === 'super-admin') {
+        if (isAuthenticated && !isSuperAdmin && requiredRole === 'super-admin') {
             return {
                 title: 'Acesso Restrito',
                 subtitle: 'Apenas administradores podem acessar'
