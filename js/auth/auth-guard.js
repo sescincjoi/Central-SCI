@@ -65,7 +65,7 @@ class AuthGuard {
    */
   applyProtection() {
     const isAuthenticated = authCore.isAuthenticated();
-    const isAdmin = authCore.isAdmin();
+    const isSuperAdmin = authCore.isSuperAdmin();
     
     console.log(`🛡️ Aplicando proteção: ${isAuthenticated ? 'LOGADO' : 'NÃO LOGADO'}`);
     
