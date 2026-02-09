@@ -1422,11 +1422,11 @@
 
         // Inicializar
         window.addEventListener('load', () => {
-            // Verificar se é admin
+            // Verificar se é super-admin
             authCore.addAuthListener((event, user) => {
                 if (event === 'login') {
-                    if (user.role !== 'admin') {
-                        showNotification('Acesso negado. Apenas administradores.', 'error');
+                    if (user.role !== 'super-admin') {
+                        showNotification('Acesso negado. Apenas Super administradores.', 'error');
                         setTimeout(() => {
                             window.location.href = '/';
                         }, 2000);
@@ -1438,11 +1438,9 @@
             
             // Se já estiver logado
             if (authCore.isAuthenticated()) {
-                if (!authCore.isAdmin()) {
-                    showNotification('Acesso negado. Apenas administradores.', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
+                if (!authCore.isSuperAdmin()) {
+                  alert('Acesso negado. Apenas super administradores podem acessar esta página.');
+                  window.location.href = '/Central-SCI/';
                 } else {
                     carregarDados();
                 }
