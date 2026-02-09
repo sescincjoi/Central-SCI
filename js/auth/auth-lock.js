@@ -69,7 +69,7 @@ export default {
         const requiredRole = element.getAttribute('data-role');
         
         // Usuário comum tentando acessar área admin
-        if (isAuthenticated && !isSuperAdmin && requiredRole === 'super-admin') {
+        if (isAuthenticated && !isAdmin && requiredRole === 'super-admin') {
             return {
                 title: 'Acesso Restrito',
                 subtitle: 'Apenas administradores podem acessar'
