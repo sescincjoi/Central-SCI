@@ -226,12 +226,17 @@ class AuthGuard {
       // Atualizar menu
       document.getElementById('auth-user-name').textContent = user.displayName;
       document.getElementById('auth-user-matricula').textContent = `Matrícula: ${user.matricula}`;
-      
+
       const roleElement = document.getElementById('auth-user-role');
-      if (user.role === 'admin') {
-        roleElement.textContent = 'administrador';
+      // Mostrar PainelSuperAdmin
+      if (user.role === 'super-admin') {
+        roleElement.textContent = 'super administrador';
         roleElement.className = 'auth-user-role admin';
         document.getElementById('auth-menu-admin').style.display = 'flex';
+      } else if (user.role === 'admin') {
+        roleElement.textContent = 'administrador';
+        roleElement.className = 'auth-user-role admin';
+        document.getElementById('auth-menu-admin').style.display = 'none';  // ← Admin não vê
       } else {
         roleElement.textContent = 'usuário';
         roleElement.className = 'auth-user-role user';
