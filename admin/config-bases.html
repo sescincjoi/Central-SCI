@@ -306,6 +306,36 @@
         .toast.error {
             background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
         }
+
+        .endpoint-row {
+            display: grid;
+            grid-template-columns: 150px 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+        
+        .btn-remove-endpoint {
+            background: #ff3b30;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-remove-endpoint:hover {
+            background: #d70015;
+        }
+        
+        @media (max-width: 768px) {
+            .endpoint-row {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -421,24 +451,15 @@
                     <!-- Endpoints -->
                     <div>
                         <h3 class="text-lg font-semibold mb-4">Endpoints (Google Apps Script)</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="form-label">Avisos</label>
-                                <input type="url" id="endpointAvisos" class="form-input" placeholder="https://script.google.com/macros/s/...">
-                            </div>
-                            <div>
-                                <label class="form-label">Relatórios</label>
-                                <input type="url" id="endpointRelatorios" class="form-input" placeholder="https://script.google.com/macros/s/...">
-                            </div>
-                            <div>
-                                <label class="form-label">Escalas</label>
-                                <input type="url" id="endpointEscalas" class="form-input" placeholder="https://script.google.com/macros/s/...">
-                            </div>
-                            <div>
-                                <label class="form-label">Treinamentos</label>
-                                <input type="url" id="endpointTreinamentos" class="form-input" placeholder="https://script.google.com/macros/s/...">
-                            </div>
+                        
+                        <div id="endpointsContainer" class="space-y-3">
+                            <!-- Endpoints serão inseridos dinamicamente aqui -->
                         </div>
+                        
+                        <button type="button" class="btn-secondary mt-3" onclick="adicionarEndpoint()">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Adicionar Endpoint</span>
+                        </button>
                     </div>
 
                     <!-- Configurações Operacionais -->
@@ -593,6 +614,9 @@
             document.getElementById('baseIdOriginal').value = '';
             document.getElementById('baseId').disabled = false;
             document.getElementById('logoPreview').src = 'https://via.placeholder.com/150x150?text=Logo';
+
+            // Limpar endpoints
+            document.getElementById('endpointsContainer').innerHTML = '';
             
             // Valores padrão
             document.getElementById('configTurno').value = 12;
@@ -624,10 +648,7 @@
             document.getElementById('logoPreview').src = base.logoUrl || 'https://via.placeholder.com/150x150?text=Logo';
             
             // Endpoints
-            document.getElementById('endpointAvisos').value = base.endpoints?.avisos || '';
-            document.getElementById('endpointRelatorios').value = base.endpoints?.relatorios || '';
-            document.getElementById('endpointEscalas').value = base.endpoints?.escalas || '';
-            document.getElementById('endpointTreinamentos').value = base.endpoints?.treinamentos || '';
+            carregarEndpoints(base.endpoints || {});
             
             // Config
             document.getElementById('configEquipes').value = base.config?.equipes?.join(', ') || '';
@@ -678,14 +699,7 @@
                     icao: document.getElementById('baseIcao').value.trim().toUpperCase(),
                     ativo: document.getElementById('baseAtivo').value === 'true',
                     logoUrl: document.getElementById('baseLogoUrl').value.trim(),
-                    endpoints: {
-                        avisos: document.getElementById('endpointAvisos').value.trim() || null,
-                        relatorios: document.getElementById('endpointRelatorios').value.trim() || null,
-                        escalas: document.getElementById('endpointEscalas').value.trim() || null,
-                        treinamentos: document.getElementById('endpointTreinamentos').value.trim() || null,
-                        materiais: null,
-                        ocorrencias: null
-                    },
+                    endpoints: coletarEndpoints(),
                     config: {
                         equipes: equipesArray,
                         turno: parseInt(document.getElementById('configTurno').value),
@@ -735,6 +749,95 @@
             }, 3000);
         }
 
+        // ========== GERENCIAMENTO DE ENDPOINTS DINÂMICOS ==========
+        function carregarEndpoints(endpoints) {
+            const container = document.getElementById('endpointsContainer');
+            container.innerHTML = '';
+            
+            // Se não tiver nenhum endpoint, adicionar um vazio
+            if (!endpoints || Object.keys(endpoints).length === 0) {
+                adicionarEndpoint();
+                return;
+            }
+            
+            // Carregar endpoints existentes
+            Object.keys(endpoints).forEach(nome => {
+                const url = endpoints[nome];
+                if (url !== null && url !== undefined) {
+                    adicionarEndpoint(nome, url);
+                }
+            });
+        }
+        
+        window.adicionarEndpoint = function(nome = '', url = '') {
+            const container = document.getElementById('endpointsContainer');
+            const index = container.children.length;
+            
+            const row = document.createElement('div');
+            row.className = 'endpoint-row';
+            row.innerHTML = `
+                <div>
+                    <label class="form-label">Nome</label>
+                    <input type="text" 
+                           class="form-input endpoint-nome" 
+                           placeholder="avisos" 
+                           value="${nome}"
+                           onchange="normalizarNomeEndpoint(this)">
+                </div>
+                <div>
+                    <label class="form-label">URL do Apps Script</label>
+                    <input type="url" 
+                           class="form-input endpoint-url" 
+                           placeholder="https://script.google.com/macros/s/..." 
+                           value="${url}">
+                </div>
+                <div>
+                    <button type="button" class="btn-remove-endpoint" onclick="removerEndpoint(this)">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(row);
+            lucide.createIcons();
+        };
+        
+        window.removerEndpoint = function(btn) {
+            const container = document.getElementById('endpointsContainer');
+            
+            // Não permitir remover se for o último
+            if (container.children.length <= 1) {
+                showToast('Mantenha pelo menos um endpoint', 'error');
+                return;
+            }
+            
+            btn.closest('.endpoint-row').remove();
+        };
+        
+        window.normalizarNomeEndpoint = function(input) {
+            // Remover espaços, caracteres especiais, converter para minúscula
+            let valor = input.value.toLowerCase().trim();
+            valor = valor.replace(/[^a-z0-9_-]/g, '');
+            input.value = valor;
+        };
+        
+        function coletarEndpoints() {
+            const container = document.getElementById('endpointsContainer');
+            const rows = container.querySelectorAll('.endpoint-row');
+            const endpoints = {};
+            
+            rows.forEach(row => {
+                const nome = row.querySelector('.endpoint-nome').value.trim();
+                const url = row.querySelector('.endpoint-url').value.trim();
+                
+                if (nome) {
+                    endpoints[nome] = url || null;
+                }
+            });
+            
+            return endpoints;
+        }
+        
         // Disponibilizar globalmente
         window.carregarBases = carregarBases;
         window.showToast = showToast;
