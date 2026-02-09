@@ -83,7 +83,7 @@ class AuthGuard {
         hasAccess = false; // Não logado
       } else if (!requiredRole) {
         hasAccess = true; // Apenas requer login
-      } else if (requiredRole === 'admin') {
+      } else if (requiredRole === 'super-admin') {
         hasAccess = isAdmin; // Requer admin
       } else if (requiredRole === 'user') {
         hasAccess = true; // Qualquer usuário logado
